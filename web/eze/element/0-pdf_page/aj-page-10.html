@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, viewport-fit=cover">
+  <title>EzeeMe Notes - Protected</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Stack+Sans+Notch:wght@200..700&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+  <meta name="robots" content="noarchive,noimageindex">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background-color: #eeeeee;
+      color: #333;
+      user-select: none;
+      -webkit-user-select: none;
+      min-width: 400px;
+    }
+    
+    /* NEW: Prevent Printing */
+    @media print {
+      body { display: none !important; }
+    }
+
+    header {
+      background-color: #351757;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+
+    .weblogo {
+      font-size: 20px; font-weight: bold; letter-spacing: 2px;
+      background-color: #4E277A; padding: 8px 16px;
+      border-radius: 60px; margin-left: 7px;
+    }
+
+    main { padding-top: 65px; margin-bottom: 3%; }
+
+    .imagecontainer { margin: 0 auto; position: relative; }
+
+    /* MODIFIED: Page uses background-image */
+    .page {
+      position: relative;
+      margin-bottom: 0;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      width: 100%;
+      /* Aspect ratio fallback if needed, but height is managed by JS */
+      min-height: 200px; 
+    }
+
+    .hidden-trap-image {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: auto;
+    }
+
+    .watermark-bottom {
+      position: absolute; bottom: 2%; right: 2%;
+      color: #f2ba49; opacity: 0.50;
+      letter-spacing: 2px; pointer-events: none;
+      font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700; z-index: 60;
+    }
+    
+    .watermark-page-index {
+      position: absolute; bottom: 1%; left: 10%; 
+      transform: translateX(-50%);
+      color: #351757; opacity: 0.50;
+      pointer-events: none;
+      font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700; background-color: yellow;
+      padding: 0.5% 2%; border: 2px solid #ccbc2f;
+      border-radius: 50px; z-index: 500;
+    }
+
+    .watermark-vertical-third {
+      position: fixed; top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      color: #888; opacity: 0.5;
+      letter-spacing: 2px; pointer-events: none;
+      z-index: 2000;
+      font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700;
+    }
+
+    .width-control { margin-left: auto; display: flex; align-items: center; padding-right: 15px; }
+    #widthRange { margin-left: 8px; }
+
+    .spinner {
+      margin: 30px auto; width: 60px; height: 60px;
+      border: 6px solid #e0e0e0; border-top: 6px solid #351757; 
+      border-radius: 50%; animation: spin 1s linear infinite; display: none;
+    }
+      
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .bck_circle-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      background-color: #A47AD0; display: flex;
+      align-items: center; justify-content: center;
+      border: none; cursor: pointer;
+      position: fixed; top: 70px; right: 15px;
+      z-index: 1000; opacity: 0.9;
+    }
+    .bck_hidden { opacity: 0; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="weblogo">
+      <span style="color:#A47AD0;">@EzeeMe</span><span style="color:white;">Bot</span>
+    </div>
+    <div class="width-control">
+      <input type="range" id="widthRange">
+      <span id="widthValue" style="color:white; margin-left:8px;"></span>
+    </div>
+  </header>
+
+<main>
+  <div class="space_box"></div>
+  <div id="notfound_container"></div> 
+  <div class="imagecontainer" id="images"></div>
+  <div class="spinner" id="loadingSpinner"></div>
+  <div class="watermark-vertical-third" id="fixedWatermark">EzeeMeBot</div>
+</main>
+
+<button id="bck_backBtn" class="bck_circle-btn" onclick="window.history.back()">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="24" height="24">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 19-7-7 7-7" />
+  </svg>
+</button>
+
+<script>
+    // Data Decoding Logic [cite: 49, 50, 51]
+    let other_data = [126,13,35,35,37,102,107,100,115,119,104,117,52,37,61,35,94,13,35,35,35,35,37,107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,106,125,60,121,104,100,114,59,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,55,58,60,57,55,53,50,52,51,51,51,51,56,51,58,58,57,98,100,124,120,98,121,115,107,121,118,108,49,109,115,106,37,47,13,35,35,35,35,37,107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,106,125,60,121,104,100,114,59,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,55,58,60,57,55,52,50,52,51,51,51,51,56,51,58,58,58,98,100,124,120,98,112,116,108,115,60,123,49,109,115,106,37,13,35,35,96,47,13,35,35,37,102,107,100,115,119,104,117,53,37,61,35,94,13,35,35,35,35,37,107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,106,125,60,121,104,100,114,59,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,55,58,60,59,56,54,50,52,51,51,51,51,56,51,58,59,55,98,100,124,120,98,104,113,104,122,100,58,49,109,115,106,37,13,35,35,96,128];
+    function decode(arr) { return arr.map(code => String.fromCharCode(code - 3)).join(''); }
+    const allChapters = JSON.parse(decode(other_data));
+    function hexToString(hex) {
+      let str = '';
+      for (let i = 0; i < hex.length; i += 2) { str += String.fromCharCode(parseInt(hex.substr(i, 2), 16)); }
+      return str;
+    }
+
+    const whereis = new URLSearchParams(window.location.search);
+    const incriptedata = whereis.get("inc") || "7b22636861707465725f696e646578223a226368617074657232222c2265785f74696d65223a313736373433353332357d";
+    let chapter = 'chapter0', time_ex = 1767866210;
+    if (incriptedata) {
+      try { 
+        const json = JSON.parse(hexToString(incriptedata));
+        if (json.chapter_index) chapter = json.chapter_index;
+        if (json.ex_time) time_ex = json.ex_time;
+      } catch(e) { console.error("Error 101!"); }
+    }
+
+    /* GLOBAL PROTECTION [cite: 60-73] */
+    const block = e => e.preventDefault();
+    document.addEventListener("contextmenu", block);
+    document.addEventListener("selectstart", block);
+    document.addEventListener("dragstart", block);
+    document.addEventListener("keydown", e => {
+      const k = e.key.toLowerCase(), cm = e.ctrlKey || e.metaKey;
+      if ((cm && ['c','x','v','s','u','a','p','r'].includes(k)) || k === 'f12' || (cm && e.shiftKey && ['i','j','c'].includes(k))) {
+        block(e);
+      }
+    });
+
+    const container = document.getElementById('images');
+    const spinner = document.getElementById('loadingSpinner');
+    const chapterData = allChapters[chapter] || [];
+    const totalImages = chapterData.length;
+    let loadedCount = 0;
+    const BATCH_SIZE = 3;
+
+    // Loading & Unloading Observer [cite: 81-83]
+    const cleanupObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const page = entry.target;
+        const bgUrl = page.dataset.src;
+        if (entry.isIntersecting) {
+          // MODIFIED: Load background image
+          if (!page.style.backgroundImage) {
+            page.style.backgroundImage = `url('${bgUrl}')`;
+            
+            // To maintain aspect ratio with background images, we need to know image dimensions.
+            // As a simple fix, we'll set a temporary high height until it loads.
+            const tempImg = new Image();
+            tempImg.src = bgUrl;
+            tempImg.onload = () => {
+              const ratio = tempImg.height / tempImg.width;
+              page.style.height = (page.offsetWidth * ratio) + 'px';
+            };
+          }
+        } else {
+          // MODIFIED: Unload background image
+          if (page.style.backgroundImage) {
+            page.style.height = page.offsetHeight + 'px';
+            page.style.backgroundImage = '';
+          }
+        }
+      });
+    }, { rootMargin: '150% 0px' });
+
+    function createPageElement(url, index) {
+      const page = document.createElement('div');
+      page.className = 'page';
+      page.dataset.src = url; // Store URL for lazy loading
+      
+      // Transparent Trap Overlay 
+      const trap = document.createElement('img');
+      trap.src = "https://res.cloudinary.com/durzipdbq/image/upload/v1765891255/noughty_iyzt9l.jpg";
+      trap.className = 'hidden-trap-image';
+      
+      const wmBottom = document.createElement('div');
+      wmBottom.className = 'watermark-bottom';
+      wmBottom.textContent = 'EzeeMeBot';
+
+      const wmIndex = document.createElement('div');
+      wmIndex.className = 'watermark-page-index';
+      wmIndex.textContent = `${index + 1} / ${totalImages}`;
+      
+      page.appendChild(trap);  
+      page.appendChild(wmBottom); 
+      page.appendChild(wmIndex);
+      
+      cleanupObserver.observe(page);
+      return page;
+    }
+
+    function loadNextBatch() {
+      if (loadedCount >= totalImages) {
+        spinner.style.display = 'none';
+        return;
+      }
+      spinner.style.display = 'block';
+      setTimeout(() => {
+        const nextBatch = chapterData.slice(loadedCount, loadedCount + BATCH_SIZE);
+        nextBatch.forEach((url, i) => {
+          container.appendChild(createPageElement(url, loadedCount + i));
+        });
+        loadedCount += nextBatch.length;
+        resizeWatermarks();
+        if (loadedCount >= totalImages) spinner.style.display = 'none';
+      }, 50);
+    }
+
+    // Initialize Scroll/Resize logic [cite: 120-126]
+    const infiniteScrollObserver = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) loadNextBatch();
+    }, { rootMargin: '200px' });
+
+    if (totalImages > 0) {
+      loadNextBatch();
+      infiniteScrollObserver.observe(spinner);
+    }
+
+    // Orientation and Width Logic (simplified/restored) [cite: 111-124]
+    function applyWidth() {
+      const val = widthRange.value;
+      container.style.width = val + '%';
+      document.querySelector('.space_box').style.width = val + '%';
+      document.getElementById('widthValue').textContent = val + '%';
+      
+      // Recalculate heights for background images on width change
+      document.querySelectorAll('.page').forEach(page => {
+        if (page.style.backgroundImage) {
+          const tempImg = new Image();
+          const urlMatch = page.style.backgroundImage.match(/url\("?(.+?)"?\)/);
+          if (urlMatch) {
+            tempImg.src = urlMatch[1];
+            tempImg.onload = () => {
+              page.style.height = (page.offsetWidth * (tempImg.height / tempImg.width)) + 'px';
+            };
+          }
+        }
+      });
+      resizeWatermarks();
+    }
+    
+    // Existing Watermark/UI Helper Functions [cite: 96-105]
+    function resizeWatermarks() {
+        const cw = container.offsetWidth;
+        document.querySelectorAll('.watermark-vertical-third').forEach(wm => wm.style.fontSize = (cw * 0.05) + 'px');
+        document.querySelectorAll('.watermark-bottom').forEach(wm => wm.style.fontSize = (cw * 0.03) + 'px');
+        document.querySelectorAll('.watermark-page-index').forEach(wm => wm.style.fontSize = (cw * 0.02) + 'px');
+    }
+
+    window.addEventListener('resize', applyWidth);
+    document.getElementById('widthRange').addEventListener('input', applyWidth);
+    
+    // Default values
+    const widthRange = document.getElementById('widthRange');
+    widthRange.min = "55"; widthRange.max = "95"; widthRange.value = "75";
+    applyWidth();
+
+</script>
+</body>
+</html>
