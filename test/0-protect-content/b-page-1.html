@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JavaScript Required Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: dark light; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #0f1318;
+      color: #e9edf3;
+    }
+
+    /* Start locked: content hidden until JS adds .js-enabled */
+    .content { display: none; }
+
+    /* When JS is enabled, reveal content */
+    .js-enabled .content { display: block; }
+
+    /* Fullscreen “JS required” overlay for users without JS */
+    .noscript-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: #0f1318;
+      color: #e9edf3;
+      z-index: 9999;
+    }
+    .panel {
+      max-width: 560px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      background: #141a21;
+    }
+
+    /* Optional: block printing */
+    @media print {
+      body { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Shown only when JavaScript is disabled -->
+  <noscript>
+    <div class="noscript-overlay">
+      <div class="panel">
+        <h2>JavaScript required</h2>
+        <p>This page uses active protections against copying and saving. Please enable JavaScript to view the content.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- Protected content (only visible when JS runs) -->
+  <main class="content">
+    <h1>Protected Content</h1>
+    <p>If you can see this, JavaScript is enabled.</p>
+    <img src="https://res.cloudinary.com/dgf9ntio0/image/upload/v1765708298/kmc_20251214_155903_xfd8lt.png"
+         alt="Example" width="480"
+         draggable="false"
+         style="-webkit-user-drag:none;user-select:none;">
+  </main>
+
+  <script>
+    // Unlock content by marking body as JS-enabled
+    document.documentElement.classList.add('js-enabled');
+
+    // Optional: combine with other guards
+    document.addEventListener('contextmenu', e => e.preventDefault(), { capture: true });
+    document.addEventListener('dragstart', e => e.preventDefault(), { capture: true });
+    document.addEventListener('selectstart', e => e.preventDefault(), { capture: true });
+    document.addEventListener('keydown', e => {
+      const k = e.key.toLowerCase(), cm = e.ctrlKey || e.metaKey;
+      const blocked = (cm && ['c','x','v','s','u','a','p'].includes(k)) ||
+                      (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(k)) ||
+                      (k === 'f12');
+      if (blocked) e.preventDefault();
+    }, { capture: true });
+  </script>
+</body>
+</html>
