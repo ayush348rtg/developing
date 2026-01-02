@@ -7,114 +7,119 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Stack+Sans+Notch:wght@200..700&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
-  <meta name="robots" content="noarchive,noimageindex"> 
-  <meta name="apple-mobile-web-app-capable" content="yes"> 
+  <meta name="robots" content="noarchive,noimageindex">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <style>
     body {
-      font-family: Arial, sans-serif; 
-      margin: 0; padding: 0; [cite: 2]
-      background-color: #eeeeee; [cite: 2]
-      color: #333; [cite: 2]
-      user-select: none; [cite: 2]
-      -webkit-user-select: none; [cite: 2]
-      min-width: 400px; [cite: 2]
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background-color: #eeeeee;
+      color: #333;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      min-width: 400px;
     }
 
-    /* Prevent Printing and PDF Saving */
+    /* NEW: Protect Content from Print  */
     @media print {
       body { display: none !important; }
     }
 
     header {
-      background-color: #351757; [cite: 3]
-      height: 60px; [cite: 3]
-      display: flex; [cite: 3]
-      align-items: center; [cite: 3]
-      justify-content: flex-start; [cite: 4]
-      position: fixed; [cite: 4]
-      top: 0; left: 0; [cite: 4]
-      width: 100%; [cite: 4]
-      z-index: 1000; [cite: 4]
+      background-color: #351757;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      z-index: 1000;
     }
 
     .weblogo {
-      font-size: 20px; font-weight: bold; letter-spacing: 2px; [cite: 5]
-      background-color: #4E277A; padding: 8px 16px; [cite: 5, 6]
-      border-radius: 60px; margin-left: 7px; [cite: 6]
+      font-size: 20px; font-weight: bold; letter-spacing: 2px;
+      background-color: #4E277A; padding: 8px 16px;
+      border-radius: 60px; display: inline-block; margin-left: 7px;
     }
 
-    main { padding-top: 65px; margin-bottom: 3%; } [cite: 7]
+    main { padding-top: 65px; margin-bottom: 3%; }
 
-    .imagecontainer { margin: 0 auto; position: relative; } [cite: 7, 8]
+    .imagecontainer { margin: 0 auto; position: relative; }
 
+    /* MODIFIED: Page uses background-image instead of img tag [cite: 81-82] */
     .page {
-      position: relative; [cite: 10]
-      margin-bottom: 0; [cite: 10]
-      background-size: contain; 
+      position: relative;
+      margin-bottom: 0;
+      background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
       width: 100%;
-      /* Initial height to allow observer to trigger */
-      min-height: 200px; 
+      /* Default min-height to ensure observer triggers */
+      min-height: 300px; 
     }
 
     .hidden-trap-image {
-      position: absolute; top: 0; left: 0; [cite: 11]
-      width: 100%; height: 100%; [cite: 11, 12]
-      z-index: 100; /* Higher than watermark to block clicks */
-      opacity: 0; [cite: 12]
-      pointer-events: auto; [cite: 12]
-      object-fit: fill; [cite: 12]
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: auto;
+      object-fit: fill;
     }
 
     .watermark-bottom {
-      position: absolute; bottom: 2%; right: 2%; [cite: 13]
-      color: #f2ba49; opacity: 0.50; [cite: 13, 14]
-      letter-spacing: 2px; pointer-events: none; [cite: 14]
-      font-family: "Stack Sans Notch", sans-serif; [cite: 14]
-      font-weight: 700; z-index: 60; [cite: 14]
+      position: absolute; bottom: 2%; right: 2%;
+      color: #f2ba49; opacity: 0.50;
+      letter-spacing: 2px; pointer-events: none;
+      user-select: none; white-space: nowrap;
+      font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700; z-index: 60;
     }
     
     .watermark-page-index {
-      position: absolute; bottom: 1%; left: 10%; [cite: 15, 16]
-      transform: translateX(-50%); [cite: 16]
-      color: #351757; opacity: 0.50; [cite: 16]
-      pointer-events: none; [cite: 16]
-      font-family: "Stack Sans Notch", sans-serif; [cite: 16]
-      font-weight: 700; background-color: yellow; [cite: 17]
-      padding: 0.5% 2%; border: 2px solid #ccbc2f; [cite: 17]
-      border-radius: 50px; z-index: 500; [cite: 17]
+      position: absolute; bottom: 1%; left: 10%; 
+      transform: translateX(-50%);
+      color: #351757; opacity: 0.50;
+      pointer-events: none; user-select: none;
+      white-space: nowrap; font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700; background-color: yellow;
+      padding: 0.5% 2%; border: 2px solid #ccbc2f;
+      border-radius: 50px; z-index: 500;
     }
 
-    /* Vertical Watermark now relative to the Page Container */
-    .watermark-in-page {
-      position: absolute;
-      top: 50%;
-      left: 67%; /* Adjusted to match your original positioning */
-      transform: translate(-50%, -50%) rotate(90deg); [cite: 18]
-      color: #888; opacity: 0.5; [cite: 18, 19]
-      letter-spacing: 2px; pointer-events: none; [cite: 19]
-      white-space: nowrap; z-index: 55;
-      font-family: "Stack Sans Notch", sans-serif; [cite: 19]
-      font-weight: 700; [cite: 19]
+    .watermark-vertical-third {
+      position: fixed; top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      color: #888; opacity: 0.5;
+      letter-spacing: 2px; pointer-events: none;
+      user-select: none; white-space: nowrap;
+      z-index: 2000; font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700; display: block;
     }
 
-    .width-control { margin-left: auto; display: flex; align-items: center; padding-right: 15px; } [cite: 20, 21]
+    .width-control { margin-left: auto; display: flex; align-items: center; padding-right: 15px; }
+    #widthRange { margin-left: 8px; }
 
     .spinner {
-      margin: 30px auto; width: 60px; height: 60px; [cite: 26, 27]
-      border: 6px solid #e0e0e0; border-top: 6px solid #351757; [cite: 27]
-      border-radius: 50%; animation: spin 1s linear infinite; display: none; [cite: 27]
+      margin: 30px auto; width: 60px; height: 60px;
+      border: 6px solid #e0e0e0; border-top: 6px solid #351757; 
+      border-radius: 50%; animation: spin 1s linear infinite; display: none;
     }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } [cite: 28, 29, 30]
+      
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     .bck_circle-btn {
-      width: 40px; height: 40px; border-radius: 50%; [cite: 34, 35]
-      background-color: #A47AD0; display: flex; align-items: center; [cite: 35]
-      justify-content: center; border: none; cursor: pointer; [cite: 35]
-      position: fixed; top: 70px; right: 15px; z-index: 1000; [cite: 36]
+      width: 40px; height: 40px; border-radius: 50%;
+      background-color: #A47AD0; display: flex;
+      align-items: center; justify-content: center;
+      border: none; cursor: pointer;
+      position: fixed; top: 70px; right: 15px;
+      z-index: 1000; opacity: 0.9;
     }
-    .bck_hidden { opacity: 0; pointer-events: none; } [cite: 39]
+    .bck_circle-btn.bck_hidden { opacity: 0; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -133,6 +138,7 @@
   <div id="notfound_container"></div> 
   <div class="imagecontainer" id="images"></div>
   <div class="spinner" id="loadingSpinner"></div>
+  <div class="watermark-vertical-third" id="fixedWatermark">EzeeMeBot</div>
 </main>
 
 <button id="bck_backBtn" class="bck_circle-btn" onclick="window.history.back()">
@@ -142,7 +148,7 @@
 </button>
 
 <script>
-    // Data Decoding Logic [cite: 49, 50, 51, 52, 53]
+    // Data Decoding [cite: 49-59]
     let other_data = [126,13,35,35,37,102,107,100,115,119,104,117,52,37,61,35,94,13,35,35,35,35,37,107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,106,125,60,121,104,100,114,59,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,55,58,60,57,55,53,50,52,51,51,51,51,56,51,58,58,57,98,100,124,120,98,121,115,107,121,118,108,49,109,115,106,37,47,13,35,35,35,35,37,107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,106,125,60,121,104,100,114,59,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,55,58,60,57,55,52,50,52,51,51,51,51,56,51,58,58,58,98,100,124,120,98,112,116,108,115,60,123,49,109,115,106,37,13,35,35,96,47,13,35,35,37,102,107,100,115,119,104,117,53,37,61,35,94,13,35,35,35,35,37,107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,106,125,60,121,104,100,114,59,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,55,58,60,59,56,54,50,52,51,51,51,51,56,51,58,59,55,98,100,124,120,98,104,113,104,122,100,58,49,109,115,106,37,13,35,35,96,128];
     function decode(arr) { return arr.map(code => String.fromCharCode(code - 3)).join(''); }
     const allChapters = JSON.parse(decode(other_data));
@@ -152,162 +158,156 @@
       return str;
     }
 
-    const whereis = new URLSearchParams(window.location.search); [cite: 53]
+    const whereis = new URLSearchParams(window.location.search);
     const incriptedata = whereis.get("inc") || "7b22636861707465725f696e646578223a226368617074657232222c2265785f74696d65223a313736373433353332357d";
-    let chapter = 'chapter0', time_ex = 1767866210; [cite: 54]
+    let chapter = 'chapter0', time_ex = 1767866210;
     if (incriptedata) {
       try { 
-        const json = JSON.parse(hexToString(incriptedata)); [cite: 55, 56]
-        if (json.chapter_index) chapter = json.chapter_index; [cite: 56]
-        if (json.ex_time) time_ex = json.ex_time; [cite: 57]
-      } catch(e) { console.error("Error 101!"); } [cite: 58]
+        const json = JSON.parse(hexToString(incriptedata));
+        if (json.chapter_index) chapter = json.chapter_index;
+        if (json.ex_time) time_ex = json.ex_time;
+      } catch(e) { console.error("Error 101!"); }
     }
 
-    /* GLOBAL PROTECTION SCRIPTS [cite: 60, 61, 71, 72] */
-    const preventAction = (e) => e.preventDefault();
-    document.addEventListener("contextmenu", preventAction);
-    document.addEventListener("selectstart", preventAction);
-    document.addEventListener("dragstart", preventAction);
-    document.addEventListener("keydown", (e) => {
+    /* GLOBAL PROTECTION SCRIPTS [cite: 60-73] */
+    const block = e => e.preventDefault();
+    document.addEventListener("contextmenu", block);
+    document.addEventListener("selectstart", block);
+    document.addEventListener("dragstart", block);
+    document.addEventListener("keydown", e => {
       const k = e.key.toLowerCase(), cm = e.ctrlKey || e.metaKey;
-      if ((cm && ['c','x','v','s','u','a','p','r'].includes(k)) || k === 'f12' || (cm && e.shiftKey && ['i','j','c'].includes(k))) {
-        preventAction(e);
+      if ((cm && ['c','x','v','s','u','a','p'].includes(k)) || k === 'f12' || (cm && e.shiftKey && ['i','j','c'].includes(k))) {
+        block(e);
       }
     });
 
-    const container = document.getElementById('images'); [cite: 73]
-    const spinner = document.getElementById('loadingSpinner'); [cite: 73]
-    const chapterData = allChapters[chapter] || []; [cite: 73]
-    const totalImages = chapterData.length; [cite: 73]
+    const container = document.getElementById('images');
+    const spinner = document.getElementById('loadingSpinner');
+    const chapterData = allChapters[chapter] || [];
+    const totalImages = chapterData.length;
     let loadedCount = 0;
-    const BATCH_SIZE = 3; [cite: 73, 74]
+    const BATCH_SIZE = 3;
 
-    // Intersection Observer for Lazy Loading Background Images [cite: 80, 81, 82]
+    // MODIFIED: Observer for Background Images [cite: 81-83]
     const cleanupObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const page = entry.target;
-        const url = page.dataset.src;
+        const bgUrl = page.dataset.src;
         if (entry.isIntersecting) {
           if (!page.style.backgroundImage) {
-            page.style.backgroundImage = `url('${url}')`;
+            page.style.backgroundImage = `url('${bgUrl}')`;
             
-            // Auto-calculate height based on original image aspect ratio
-            const img = new Image();
-            img.src = url;
-            img.onload = () => {
-              const ratio = img.height / img.width;
+            // Auto-calculate height for background containment
+            const tempImg = new Image();
+            tempImg.src = bgUrl;
+            tempImg.onload = () => {
+              const ratio = tempImg.height / tempImg.width;
               page.style.height = (page.offsetWidth * ratio) + 'px';
             };
           }
         } else {
           if (page.style.backgroundImage) {
-            page.style.height = page.offsetHeight + 'px'; // Maintain space
-            page.style.backgroundImage = ''; // Unload
+            page.style.height = page.offsetHeight + 'px'; // Preserve gap
+            page.style.backgroundImage = ''; // Unload to save RAM
           }
         }
       });
-    }, { rootMargin: '100% 0px' });
+    }, { rootMargin: '200% 0px' });
 
     function createPageElement(url, index) {
       const page = document.createElement('div');
       page.className = 'page';
-      page.dataset.src = url; [cite: 85]
+      page.dataset.src = url; // Store URL for lazy load
       
-      const trap = document.createElement('img'); [cite: 85]
-      trap.src = "https://res.cloudinary.com/durzipdbq/image/upload/v1765891255/noughty_iyzt9l.jpg"; [cite: 85]
-      trap.className = 'hidden-trap-image'; [cite: 86]
+      const trap = document.createElement('img');
+      trap.src = "https://res.cloudinary.com/durzipdbq/image/upload/v1765891255/noughty_iyzt9l.jpg";
+      trap.className = 'hidden-trap-image';
       
-      const wmBottom = document.createElement('div'); [cite: 86]
+      const wmBottom = document.createElement('div');
       wmBottom.className = 'watermark-bottom';
-      wmBottom.textContent = 'EzeeMeBot'; [cite: 86]
+      wmBottom.textContent = 'EzeeMeBot';
 
-      const wmIndex = document.createElement('div'); [cite: 87]
+      const wmIndex = document.createElement('div');
       wmIndex.className = 'watermark-page-index';
-      wmIndex.textContent = `${index + 1} / ${totalImages}`; [cite: 87]
-
-      // Per-page vertical watermark
-      const wmVertical = document.createElement('div');
-      wmVertical.className = 'watermark-in-page';
-      wmVertical.textContent = 'EzeeMeBot';
+      wmIndex.textContent = `${index + 1} / ${totalImages}`;
       
       page.appendChild(trap);  
       page.appendChild(wmBottom); 
       page.appendChild(wmIndex);
-      page.appendChild(wmVertical);
       
-      cleanupObserver.observe(page); [cite: 87]
-      return page; [cite: 88]
+      cleanupObserver.observe(page);
+      return page;
     }
 
     function loadNextBatch() {
-      if (loadedCount >= totalImages) { [cite: 88]
-        spinner.style.display = 'none'; [cite: 88]
+      if (loadedCount >= totalImages) {
+        spinner.style.display = 'none';
         return;
       }
-      spinner.style.display = 'block'; [cite: 89]
+      spinner.style.display = 'block';
       setTimeout(() => {
-        const nextBatch = chapterData.slice(loadedCount, loadedCount + BATCH_SIZE); [cite: 90]
+        const nextBatch = chapterData.slice(loadedCount, loadedCount + BATCH_SIZE);
         nextBatch.forEach((url, i) => {
-          container.appendChild(createPageElement(url, loadedCount + i)); [cite: 90]
+          container.appendChild(createPageElement(url, loadedCount + i));
         });
-        loadedCount += nextBatch.length; [cite: 91]
-        resizeWatermarks(); [cite: 91]
-        if (loadedCount >= totalImages) spinner.style.display = 'none'; [cite: 91]
+        loadedCount += nextBatch.length;
+        resizeWatermarks();
+        if (loadedCount >= totalImages) spinner.style.display = 'none';
       }, 50);
     }
 
     const infiniteScrollObserver = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) loadNextBatch(); [cite: 83]
-    }, { rootMargin: '200px' }); [cite: 83]
+      if (entries[0].isIntersecting) loadNextBatch();
+    }, { rootMargin: '200px' });
 
-    if (totalImages > 0) { [cite: 92]
-      loadNextBatch(); [cite: 92]
-      infiniteScrollObserver.observe(spinner); [cite: 92]
+    if (totalImages > 0) {
+      loadNextBatch();
+      infiniteScrollObserver.observe(spinner);
+    }
+
+    // Existing Resize/Watermark Logic [cite: 96-105, 111-124]
+    function resizeWatermarks() {
+      const cw = document.querySelector('.space_box').offsetWidth;
+      document.querySelectorAll('.watermark-vertical-third').forEach(wm => wm.style.fontSize = (cw * 0.05) + 'px');
+      document.querySelectorAll('.watermark-bottom').forEach(wm => wm.style.fontSize = (cw * 0.03) + 'px');
+      document.querySelectorAll('.watermark-page-index').forEach(wm => wm.style.fontSize = (cw * 0.02) + 'px');
+    }
+
+    function positionVerticalWatermark() {
+      const sb = document.querySelector('.space_box');
+      const wm = document.getElementById('fixedWatermark');
+      if (!sb || !wm) return;
+      wm.style.left = (sb.getBoundingClientRect().left + sb.offsetWidth * 0.67) + 'px';
     }
 
     function applyWidth() {
-      const val = widthRange.value; [cite: 110]
-      container.style.width = val + '%'; [cite: 111]
-      document.getElementById('widthValue').textContent = val + '%'; [cite: 111]
+      const val = Number(widthRange.value);
+      container.style.width = val + '%'; 
+      document.querySelector('.space_box').style.width = val + '%';
+      document.getElementById('widthValue').textContent = val + '%';
       
-      // Force height recalculation for loaded backgrounds on resize/width change
+      // Force page height recalculation on width change
       document.querySelectorAll('.page').forEach(page => {
         if (page.style.backgroundImage) {
-          const urlMatch = page.style.backgroundImage.match(/url\("?(.+?)"?\)/);
-          if (urlMatch) {
-            const img = new Image();
-            img.src = urlMatch[1];
+          const img = new Image();
+          const match = page.style.backgroundImage.match(/url\("?(.+?)"?\)/);
+          if (match) {
+            img.src = match[1];
             img.onload = () => page.style.height = (page.offsetWidth * (img.height / img.width)) + 'px';
           }
         }
       });
-      resizeWatermarks(); [cite: 111]
+      resizeWatermarks();
+      positionVerticalWatermark();
     }
 
-    function resizeWatermarks() {
-        const cw = container.offsetWidth; [cite: 95]
-        document.querySelectorAll('.watermark-in-page').forEach(wm => wm.style.fontSize = (cw * 0.05) + 'px'); [cite: 96, 99]
-        document.querySelectorAll('.watermark-bottom').forEach(wm => wm.style.fontSize = (cw * 0.03) + 'px'); [cite: 96, 100]
-        document.querySelectorAll('.watermark-page-index').forEach(wm => wm.style.fontSize = (cw * 0.02) + 'px'); [cite: 96, 101]
-    }
-
-    const widthRange = document.getElementById('widthRange'); [cite: 105]
-    widthRange.min = "55"; widthRange.max = "95"; widthRange.value = "75"; [cite: 106, 113]
-    widthRange.addEventListener('input', applyWidth); [cite: 124]
-    window.addEventListener('resize', applyWidth); [cite: 123]
+    const widthRange = document.getElementById('widthRange');
+    widthRange.min = "55"; widthRange.max = "95"; widthRange.value = "75";
+    widthRange.addEventListener('input', applyWidth);
+    window.addEventListener('resize', applyWidth);
     
-    // Initial Run
+    // Initial Positioning
     applyWidth();
-
-    // Back button visibility logic [cite: 125]
-    let bck_lastST = 0;
-    window.addEventListener('scroll', () => {
-      let st = window.pageYOffset || document.documentElement.scrollTop;
-      const btn = document.getElementById('bck_backBtn');
-      if (st > bck_lastST) btn.classList.add('bck_hidden');
-      else btn.classList.remove('bck_hidden');
-      bck_lastST = st <= 0 ? 0 : st;
-    });
 
 </script>
 </body>
