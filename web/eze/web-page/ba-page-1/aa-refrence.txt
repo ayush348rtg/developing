@@ -1,0 +1,17 @@
+z-index:{
+  1: base,
+  2: overlay,
+  5:thumb_cover_card::after,
+  98: floating box
+  99: side class options,
+  100: overlay
+}
+
+completed:{
+  head:{
+    site name+ class option icon
+    class options
+    typing text
+  }
+  floating box
+}
