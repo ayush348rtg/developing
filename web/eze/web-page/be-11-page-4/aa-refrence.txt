@@ -1,0 +1,28 @@
+z-index:{
+  1: base,
+  2: overlay,
+  3:std_status_dot,
+  5:thumb_cover_card::after,
+  98: floating box
+  99: side class options,
+  100: overlay
+}
+
+completed:{
+  head:{
+    site name+ class option icon
+    class options
+    typing text
+  }
+  floating box
+}
+
+content_protect{
+  print,
+  
+}
+
+error_number:{
+  200: expire time,
+  
+}
