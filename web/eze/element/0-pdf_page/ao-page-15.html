@@ -76,11 +76,11 @@
       -webkit-touch-callout: none;
     }
     .overlay {
-      position: absolute;
+      position: fixed;        /* 🔥 key */
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;           /* full screen width */
+      height: 100vh;
       z-index: 9;
       background-color: yellow;
       opacity: 0.2;
@@ -268,7 +268,6 @@
   </header>
 
 <main>
-  <div class="overlay"></div>
   <div class="space_box"></div>
   <div id="notfound_container"></div> 
   <div class="imagecontainer" id="images"></div>
@@ -276,6 +275,8 @@
   <div class="watermark-vertical-third" id="fixedWatermark">EzeeMeBot</div>
 </main>
 
+  <div class="overlay"></div>
+  
 <button id="bck_backBtn" class="bck_circle-btn" onclick="window.history.back()">
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 19-7-7 7-7" />
