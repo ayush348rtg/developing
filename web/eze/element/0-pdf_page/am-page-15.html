@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, viewport-fit=cover">
+  <title>EzeeMe Notes - Protected</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Stack+Sans+Notch:wght@200..700&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+  <meta name="robots" content="noarchive,noimageindex">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="telegram:image-protection" content="true">
+  <style>
+    /* Print Protection: Hides content if the user tries to print or Save as PDF */
+    @media print {
+      body { display: none !important; }
+      html { display: none !important; }
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #eeeeee;
+      color: #333;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      min-width: 400px;
+    }
+
+    header {
+      background-color: #351757;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      z-index: 11;
+    }
+
+    .weblogo {
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      background-color: #4E277A;
+      padding: 8px 16px;
+      border-radius: 60px;
+      display: inline-block;
+      margin-left: 7px;
+    }
+
+    main {
+      height: auto;
+      padding-top: 65px;
+      margin-bottom: 3%;
+    }
+
+    .imagecontainer {
+      margin: 0 auto;
+      position: relative;
+      -webkit-touch-callout: none;
+    }
+
+    /* CSS Background Image Method Styling */
+    .page {
+      position: relative;
+      margin-bottom: 0;
+      background-repeat: no-repeat;
+      background-size: 100% auto;
+      background-position: center top;
+      width: 100%;
+      -webkit-touch-callout: none;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9;
+    }
+    /* Invisible spacer keeps the div height correct based on image aspect ratio */
+    .spacer-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .hidden-trap-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: auto;
+      object-fit: fill;
+      -webkit-user-drag: none;
+      -webkit-touch-callout: none;
+    }
+
+    .watermark-bottom {
+      position: absolute;
+      bottom: 2%;
+      right: 2%;
+      color: #f2ba49;
+      opacity: 0.50;
+      letter-spacing: 2px;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+      font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700;
+      z-index: 2;
+    }
+    
+    .watermark-page-index {
+      position: absolute;
+      bottom: 1%;
+      left: 10%; 
+      transform: translateX(-50%);
+      color: #351757;
+      opacity: 0.50;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+      font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700;
+      background-color: yellow;
+      padding: 0.5% 2%;
+      border: 2px solid #ccbc2f;
+      border-radius: 50px;
+      z-index: 3;
+    }
+
+    .watermark-vertical-third {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      color: #888;
+      opacity: 0.5;
+      letter-spacing: 2px;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+      z-index: 4;
+      font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700;
+      display: block;
+    }
+
+    .width-control {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      padding-right: 15px;
+    }
+
+    #widthRange { margin-left: 8px; }
+
+    .watermark-not-found {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: red;
+      transform: translateY(-50%) rotate(0deg);
+      letter-spacing: 3px;
+      z-index: 5;
+      font-family: "Stack Sans Notch", sans-serif;
+      font-weight: 700;
+      margin-top: 30vh;
+    }
+
+    .watermark-bottom,
+    .watermark-not-found,
+    .watermark-page-index,
+    .watermark-vertical-third {
+      transition: font-size 0.3s ease;
+    }
+
+    .space_box{
+      height: 10px;
+      margin: 0 auto;
+      position: relative;
+      background-color: #eeeeee;
+    }
+    
+    .spinner {
+      margin: 30px auto;
+      width: 60px;
+      height: 60px;
+      border: 6px solid #e0e0e0;
+      border-top: 6px solid #351757; 
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+      
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (orientation: portrait) {
+      .imagecontainer { width: 90%; }
+      .space_box { width: 90%; }
+    }
+
+    @media (orientation: landscape) {
+      .imagecontainer { width: 60%; }
+      .space_box { width: 60%; }
+    }
+    
+    .bck_circle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #A47AD0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s, opacity 0.3s;
+      position: fixed;
+      top: 70px;
+      right: 15px;
+      z-index: 10;
+      opacity: 0.9;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    
+    .bck_circle-btn:focus, .bck_circle-btn:active {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.4);
+    }
+    .bck_circle-btn.bck_hidden { opacity: 0; pointer-events: none; }
+    .bck_circle-btn:hover { background-color: #ddd; }
+    .bck_circle-btn svg { width: 24px; height: 24px; stroke: #333; }
+    
+    /* Disables mouse interactions and dragging for images */
+    img {
+      pointer-events: none;
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="weblogo">
+      <span style="color:#A47AD0;">@EzeeMe</span><span style="color:white;">Bot</span>
+    </div>
+      <div class="width-control">
+      <input type="range" id="widthRange">
+      <span id="widthValue" style="color:white; margin-left:8px;"></span>
+    </div>
+  </header>
+
+<main>
+  <div class="overlay"></div>
+  <div class="space_box"></div>
+  <div id="notfound_container"></div> 
+  <div class="imagecontainer" id="images"></div>
+  <div class="spinner" id="loadingSpinner"></div>
+  <div class="watermark-vertical-third" id="fixedWatermark">EzeeMeBot</div>
+</main>
+
+<button id="bck_backBtn" class="bck_circle-btn" onclick="window.history.back()">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 19-7-7 7-7" />
+  </svg>
+</button>
+
+<script>
+/*
+error:{
+  100: missing data of chpater index or empty img,
+  101: ,
+  102: time expired
+}}
+*/
+    let other_data = [126,13,35,35,37,102,107,100,115,119,104,117,52,37,61,35,94,13,35,35,35,35,37,107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,106,125,60,121,104,100,114,59,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,55,58,60,57,55,53,50,52,51,51,51,51,56,51,58,58,57,98,100,124,120,98,121,115,107,121,118,108,49,109,115,106,37,47,13,35,35,35,35,37,107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,106,125,60,121,104,100,114,59,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,55,58,60,57,55,52,50,52,51,51,51,51,56,51,58,58,58,98,100,124,120,98,112,116,108,115,60,123,49,109,115,106,37,13,35,35,96,47,13,35,35,37,102,107,100,115,119,104,117,53,37,61,35,94,13,35,35,35,35,37,107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,106,125,60,121,104,100,114,59,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,55,58,60,59,56,54,50,52,51,51,51,51,56,51,58,59,55,98,100,124,120,98,104,113,104,122,100,58,49,109,115,106,37,13,35,35,96,128];
+    let protect_data_img = [107,119,119,115,118,61,50,50,117,104,118,49,102,111,114,120,103,108,113,100,117,124,49,102,114,112,50,103,120,117,125,108,115,103,101,116,50,108,112,100,106,104,50,120,115,111,114,100,103,50,121,52,58,57,56,59,60,52,53,56,56,50,113,114,120,106,107,119,124,98,108,124,125,119,60,111,49,109,115,106]
+    function decode(arr) { return arr.map(code => String.fromCharCode(code - 3)).join(''); }
+    const allChapters = JSON.parse(decode(other_data));
+    function hexToString(hex) {
+      let str = '';
+      for (let i = 0; i < hex.length; i += 2) { str += String.fromCharCode(parseInt(hex.substr(i, 2), 16)); }
+      return str;
+    }
+
+    const whereis = new URLSearchParams(window.location.search);
+    const incriptedata = whereis.get("inc") || "7b7d";
+    let chapter = 'chapter0';
+    let time_ex = 1767866210;
+    if (incriptedata) {
+      try { 
+        const decoded = hexToString(incriptedata);
+        const json = JSON.parse(decoded);
+        if (json.chapter_index) chapter = json.chapter_index;
+        if (json.ex_time) time_ex = json.ex_time;//json.ex_time;
+      } catch(e) { console.error("Error 101!"); }
+    }
+
+    /* Content Protection Event Listeners dragstart*/
+    document.addEventListener("selectstart", e => e.preventDefault());
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener('dragstart', event => event.preventDefault());
+    document.addEventListener("keydown", e => {
+      const k = e.key.toLowerCase();
+      const ctrlOrMeta = e.ctrlKey || e.metaKey;
+      if ((ctrlOrMeta && ["c", "x", "v", "s", "u", "a", "p"].includes(k)) || k === "f12" || (ctrlOrMeta && e.shiftKey && ["i", "j", "c", "r"].includes(k))) {
+        e.preventDefault();
+        if(k === 'p') alert("Printing is disabled.");
+      }
+    });
+
+    const container = document.getElementById('images');
+    const spinner = document.getElementById('loadingSpinner');
+    const chapterData = allChapters[chapter] || [];
+    const totalImages = chapterData.length;
+    let loadedCount = 0;
+    const BATCH_SIZE = 3;
+
+if (Array.isArray(chapterData) && totalImages === 0) {
+      const not_found_box = document.createElement("div");
+        not_found_box.className = "watermark-not-found"; 
+      not_found_box.textContent = "Error 100!";
+      document.getElementById("notfound_container").appendChild(not_found_box);
+      document.addEventListener("DOMContentLoaded", () => {
+      const wm = document.getElementById("fixedWatermark");
+      if (wm) {
+        wm.style.display = "none";
+      }
+        if (img_cont_block && spinner_block) {
+          img_cont_block.style.display = "none";
+          spinner_block.style.display = "none";
+        }
+      });
+    } else {
+    const current_is = Math.floor(Date.now() / 1000);
+    const is_vailid_time = time_ex - current_is;//time_ex - current_is;
+    if (time_ex < current_is) { 
+      function checkTime() {
+      const not_found_box = document.createElement("div");
+      not_found_box.className = "watermark-not-found"; 
+      not_found_box.textContent = "Error 102!";
+      document.getElementById("notfound_container").appendChild(not_found_box);
+      document.addEventListener("DOMContentLoaded", () => {
+        const wm = document.getElementById("fixedWatermark");
+        const img_cont_block = document.getElementById("images");
+        const spinner_block = document.getElementById("loadingSpinner");
+        if (wm) {
+          wm.style.display = "none";
+        }
+        if (img_cont_block && spinner_block) {
+          img_cont_block.style.display = "none";
+          spinner_block.style.display = "none";
+        }
+      });
+      }
+    checkTime();
+    }
+    }
+    
+    /* Intersection Observer for CSS Background Method */
+    const cleanupObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const page = entry.target;
+        const imageUrl = page.dataset.bg;
+        if (entry.isIntersecting) {
+          if (!page.style.backgroundImage) {
+            page.style.backgroundImage = `url('${imageUrl}')`;
+          }
+        } else {
+          page.style.backgroundImage = '';
+        }
+      });
+    }, { rootMargin: '150% 0px 150% 0px' });
+
+    const infiniteScrollObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) loadNextBatch();
+    }, { rootMargin: '200px' });
+
+    /* Creation of Page Elements using CSS Background and Spacers */
+    function createPageElement(url, index) {
+      const page = document.createElement('div');
+      page.className = 'page';
+      page.dataset.bg = url;
+      
+      const spacer = document.createElement('img');
+      spacer.src = url;
+      spacer.className = 'spacer-img';
+      
+      const trapImage = document.createElement('img');
+      trapImage.src = decode(protect_data_img)
+      trapImage.className = 'hidden-trap-image';
+      
+      const watermarkBottom = document.createElement('div');
+      watermarkBottom.className = 'watermark-bottom';
+      watermarkBottom.textContent = 'EzeeMeBot';
+
+      const watermarkPageIndex = document.createElement('div');
+      watermarkPageIndex.className = 'watermark-page-index';
+      watermarkPageIndex.textContent = `${index + 1} / ${totalImages}`;
+      
+      page.appendChild(spacer);
+      page.appendChild(trapImage);  
+      page.appendChild(watermarkBottom); 
+      page.appendChild(watermarkPageIndex);
+      
+      cleanupObserver.observe(page);
+      return page;
+    }
+
+    function loadNextBatch() {
+      if (loadedCount >= chapterData.length) {
+        spinner.style.display = 'none';
+        infiniteScrollObserver.unobserve(spinner);
+        return;
+      }
+      spinner.style.display = 'block';
+      setTimeout(() => {
+        const nextBatch = chapterData.slice(loadedCount, loadedCount + BATCH_SIZE);
+        nextBatch.forEach((url, batchIndex) => {
+          const currentIndex = loadedCount + batchIndex;
+          const page = createPageElement(url, currentIndex);
+          container.appendChild(page);
+        });
+        loadedCount += nextBatch.length;
+        resizeWatermarks();
+        if (loadedCount >= chapterData.length) spinner.style.display = 'none';
+      }, 50);
+    }
+
+    if (chapterData.length > 0) {
+      loadNextBatch();
+      infiniteScrollObserver.observe(spinner);
+    }
+
+    /* Watermark Resizing and Positioning */
+    function resizeWatermarks() {
+      const reference = document.querySelector('.space_box');
+      if (!reference) return;
+      const w = reference.offsetWidth;
+      const fontSize = w * 0.05;
+      const fontSize2 = w * 0.03;
+      const index_size = w * 0.02;
+      const gap_size = w * 0.01;
+      const nFound_font = w * 0.08;
+
+      document.querySelectorAll('.page').forEach(p => p.style.marginBottom = gap_size + 'px');
+      document.querySelectorAll('.watermark-vertical-third').forEach(wm => wm.style.fontSize = fontSize + 'px');
+      document.querySelectorAll('.watermark-bottom').forEach(wm => wm.style.fontSize = fontSize2 + 'px');
+      document.querySelectorAll('.watermark-page-index').forEach(wm => wm.style.fontSize = index_size + 'px');
+      document.querySelectorAll('.watermark-not-found').forEach(wm => wm.style.fontSize = nFound_font + 'px');
+    }
+
+    function positionVerticalWatermark() {
+      const containerRef = document.querySelector('.space_box');
+      const wm = document.getElementById('fixedWatermark');
+      if (!containerRef || !wm) return;
+      const rect = containerRef.getBoundingClientRect();
+      wm.style.left = (rect.left + rect.width * 0.67) + 'px';
+    }
+
+    /* Width and Orientation Management */
+    const widthRange = document.getElementById('widthRange');
+    const widthValue = document.getElementById('widthValue');
+    const imgContainer = document.querySelector('.imagecontainer');
+    const limits = { portrait: { min: 80, max: 95, def: 90 }, landscape: { min: 55, max: 95, def: 65 } };
+
+    function getOrientation() { return window.innerHeight >= window.innerWidth ? 'portrait' : 'landscape'; }
+
+    function applyWidth() {
+      const val = widthRange.value;
+      imgContainer.style.width = val + '%'; 
+      document.querySelector('.space_box').style.width = val + '%';
+      widthValue.textContent = val + '%';
+      resizeWatermarks();
+      positionVerticalWatermark();
+    }
+
+    function setRangeLimits(mode, force = false) {
+      const { min, max, def } = limits[mode];
+      widthRange.min = min; widthRange.max = max;
+      if (force || !widthRange.value) widthRange.value = def;
+      applyWidth();
+    }
+
+    window.addEventListener('resize', () => { resizeWatermarks(); positionVerticalWatermark(); });
+    widthRange.addEventListener('input', applyWidth);
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      setRangeLimits(getOrientation(), true);
+      resizeWatermarks();
+      positionVerticalWatermark();
+    });
+
+    let lastSt = 0;
+    window.addEventListener('scroll', () => {
+      let st = window.pageYOffset || document.documentElement.scrollTop;
+      const btn = document.getElementById('bck_backBtn');
+      st > lastSt ? btn.classList.add('bck_hidden') : btn.classList.remove('bck_hidden');
+      lastSt = st <= 0 ? 0 : st;
+    });
+</script>
+</body>
+                                             </html>
