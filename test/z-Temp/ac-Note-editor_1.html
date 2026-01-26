@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Notes — Basic Samsung Notes Style</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* ===== Ayu Notes Namespace ===== */
+    :root {
+      --ayu-bg: #0f1115;
+      --ayu-panel: #141821;
+      --ayu-toolbar: #1b2130;
+      --ayu-border: #2a3242;
+      --ayu-text: #e6e9ef;
+      --ayu-muted: #a9b0c2;
+      --ayu-accent: #5aa9ff;
+      --ayu-page-bg: #ffffff;
+      --ayu-page-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --ayu-page-width: 794px;   /* A4 width at 96dpi approx */
+      --ayu-page-height: 1123px; /* A4 height at 96dpi approx */
+      --ayu-page-margin: 28mm;   /* print margin */
+      --ayu-font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      --ayu-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--ayu-bg);
+      color: var(--ayu-text);
+      font-family: var(--ayu-font);
+    }
+
+    .ayu-app {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+    }
+
+    /* ===== Toolbar ===== */
+    .ayu-toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--ayu-toolbar);
+      border-bottom: 1px solid var(--ayu-border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .ayu-toolbar .group {
+      display: flex;
+      gap: 6px;
+      border-right: 1px solid var(--ayu-border);
+      padding-right: 8px;
+      margin-right: 8px;
+    }
+    .ayu-btn {
+      appearance: none;
+      border: 1px solid var(--ayu-border);
+      background: transparent;
+      color: var(--ayu-text);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .ayu-btn:hover { background: #22283a; border-color: #3a4358; }
+    .ayu-btn.primary { background: var(--ayu-accent); color: #0b1220; border-color: transparent; }
+    .ayu-btn.primary:hover { filter: brightness(1.05); }
+
+    input.ayu-file {
+      display: none;
+    }
+
+    .ayu-select {
+      background: transparent;
+      color: var(--ayu-text);
+      border: 1px solid var(--ayu-border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+
+    /* ===== Canvas / Page ===== */
+    .ayu-canvas {
+      display: grid;
+      place-items: start center;
+      padding: 24px;
+      overflow: auto;
+      height: calc(100vh - 56px);
+      background: var(--ayu-panel);
+    }
+
+    .ayu-page {
+      width: var(--ayu-page-width);
+      min-height: var(--ayu-page-height);
+      background: var(--ayu-page-bg);
+      color: #111;
+      box-shadow: var(--ayu-page-shadow);
+      border-radius: 8px;
+      padding: 32px 40px;
+      line-height: 1.6;
+    }
+
+    /* Contenteditable styling */
+    .ayu-editor {
+      outline: none;
+    }
+    .ayu-editor p { margin: 0 0 12px; }
+    .ayu-editor h1, .ayu-editor h2, .ayu-editor h3 {
+      margin: 0 0 12px;
+      line-height: 1.25;
+    }
+    .ayu-editor img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 12px auto;
+      border-radius: 6px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+      position: relative;
+    }
+
+    /* Simple image resize handles */
+    .ayu-img-wrap {
+      position: relative;
+      display: inline-block;
+    }
+    .ayu-img-handle {
+      position: absolute;
+      width: 10px; height: 10px;
+      background: var(--ayu-accent);
+      border-radius: 50%;
+      bottom: -6px; right: -6px;
+      cursor: nwse-resize;
+      box-shadow: 0 0 0 2px #fff;
+    }
+
+    /* ===== Export Modal ===== */
+    .ayu-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .ayu-modal.active { display: flex; }
+    .ayu-modal-card {
+      width: min(900px, 92vw);
+      background: var(--ayu-panel);
+      border: 1px solid var(--ayu-border);
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    .ayu-modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--ayu-border);
+    }
+    .ayu-modal-body {
+      padding: 12px 16px 16px;
+    }
+    .ayu-code {
+      width: 100%;
+      min-height: 280px;
+      background: #0c0f16;
+      color: #cfe3ff;
+      border: 1px solid #263147;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--ayu-mono);
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    /* ===== Print Styles ===== */
+    @page {
+      size: A4;
+      margin: var(--ayu-page-margin);
+    }
+    @media print {
+      body { background: #fff; }
+      .ayu-toolbar, .ayu-canvas { background: #fff !important; }
+      .ayu-toolbar { display: none !important; }
+      .ayu-page {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        width: auto !important;
+        min-height: auto !important;
+        padding: 0 !important;
+      }
+      .ayu-editor {
+        color: #000;
+        font-size: 12pt;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ayu-app" id="ayu-app">
+    <!-- ===== Toolbar ===== -->
+    <div class="ayu-toolbar" role="toolbar" aria-label="Note formatting toolbar">
+      <div class="group">
+        <select class="ayu-select" id="ayu-block">
+          <option value="p">Paragraph</option>
+          <option value="h1">Heading 1</option>
+          <option value="h2">Heading 2</option>
+          <option value="h3">Heading 3</option>
+        </select>
+        <button class="ayu-btn" data-cmd="bold"><strong>B</strong></button>
+        <button class="ayu-btn" data-cmd="italic"><em>I</em></button>
+        <button class="ayu-btn" data-cmd="underline"><u>U</u></button>
+        <button class="ayu-btn" data-cmd="insertUnorderedList">• List</button>
+        <button class="ayu-btn" data-cmd="insertOrderedList">1. List</button>
+      </div>
+
+      <div class="group">
+        <button class="ayu-btn" data-cmd="justifyLeft">Left</button>
+        <button class="ayu-btn" data-cmd="justifyCenter">Center</button>
+        <button class="ayu-btn" data-cmd="justifyRight">Right</button>
+      </div>
+
+      <div class="group">
+        <button class="ayu-btn" id="ayu-insert-img">Image</button>
+        <input type="file" accept="image/*" class="ayu-file" id="ayu-file-input" />
+        <button class="ayu-btn" id="ayu-divider">Divider</button>
+        <button class="ayu-btn" data-cmd="undo">Undo</button>
+        <button class="ayu-btn" data-cmd="redo">Redo</button>
+      </div>
+
+      <div class="group">
+        <button class="ayu-btn" id="ayu-export">Export HTML</button>
+        <button class="ayu-btn primary" id="ayu-print">Print</button>
+      </div>
+    </div>
+
+    <!-- ===== Canvas / Page ===== -->
+    <div class="ayu-canvas">
+      <div class="ayu-page" id="ayu-page" aria-label="A4 note page">
+        <div class="ayu-editor" id="ayu-editor" contenteditable="true" spellcheck="true">
+          <h1>Untitled Note</h1>
+          <p>Start typing… Use the toolbar above to format text, insert images, and export or print.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Export Modal ===== -->
+  <div class="ayu-modal" id="ayu-modal">
+    <div class="ayu-modal-card">
+      <div class="ayu-modal-head">
+        <div style="font-weight:600">Exported HTML</div>
+        <div>
+          <button class="ayu-btn" id="ayu-copy">Copy</button>
+          <button class="ayu-btn primary" id="ayu-close">Close</button>
+        </div>
+      </div>
+      <div class="ayu-modal-body">
+        <textarea class="ayu-code" id="ayu-code" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Ayu Notes Namespace =====
+    (function () {
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+      const editor = $('#ayu-editor');
+      const page = $('#ayu-page');
+      const blockSelect = $('#ayu-block');
+
+      // ---- Formatting buttons using execCommand (simple baseline) ----
+      $$('.ayu-btn[data-cmd]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cmd = btn.getAttribute('data-cmd');
+          document.execCommand(cmd, false, null);
+          editor.focus();
+        });
+      });
+
+      // ---- Block type (paragraph / headings) ----
+      blockSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        document.execCommand('formatBlock', false, val);
+        editor.focus();
+      });
+
+      // ---- Insert Divider ----
+      $('#ayu-divider').addEventListener('click', () => {
+        const hr = document.createElement('hr');
+        hr.style.border = 'none';
+        hr.style.borderTop = '2px solid #e5e7eb';
+        hr.style.margin = '16px 0';
+        insertNode(hr);
+      });
+
+      // ---- Image insertion with inline resize handle ----
+      const fileInput = $('#ayu-file-input');
+      $('#ayu-insert-img').addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        const wrap = document.createElement('span');
+        wrap.className = 'ayu-img-wrap';
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = file.name || 'image';
+        const handle = document.createElement('span');
+        handle.className = 'ayu-img-handle';
+        wrap.appendChild(img);
+        wrap.appendChild(handle);
+        insertNode(wrap);
+        enableResize(img, handle);
+        fileInput.value = '';
+      });
+
+      function insertNode(node) {
+        const sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0) {
+          editor.appendChild(node);
+          return;
+        }
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(node);
+        // Move caret after node
+        range.setStartAfter(node);
+        range.setEndAfter(node);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+
+      function enableResize(img, handle) {
+        let startX = 0, startY = 0, startW = 0;
+        const onDown = (ev) => {
+          ev.preventDefault();
+          startX = ev.clientX;
+          startY = ev.clientY;
+          startW = img.getBoundingClientRect().width;
+          document.addEventListener('mousemove', onMove);
+          document.addEventListener('mouseup', onUp);
+        };
+        const onMove = (ev) => {
+          const dx = ev.clientX - startX;
+          const newW = Math.max(120, startW + dx);
+          img.style.width = newW + 'px';
+          img.style.height = 'auto';
+        };
+        const onUp = () => {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        };
+        handle.addEventListener('mousedown', onDown);
+      }
+
+      // ---- Export HTML (only the note content) ----
+      const modal = $('#ayu-modal');
+      const codeArea = $('#ayu-code');
+      $('#ayu-export').addEventListener('click', () => {
+        const clean = sanitizeForExport(editor);
+        const htmlDoc =
+`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Exported Note</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: ${getComputedStyle(document.documentElement).getPropertyValue('--ayu-font').trim()}; line-height: 1.6; color: #111; }
+  .page { max-width: 800px; margin: 24px auto; padding: 24px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+  img { max-width: 100%; height: auto; display: block; margin: 12px auto; border-radius: 6px; }
+  hr { border: none; border-top: 2px solid #e5e7eb; margin: 16px 0; }
+  @media print { .page { box-shadow: none; border: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+${clean}
+</div>
+</body>
+</html>`;
+        codeArea.value = htmlDoc;
+        modal.classList.add('active');
+      });
+
+      // Remove editor-only wrappers/handles before export
+      function sanitizeForExport(root) {
+        const clone = root.cloneNode(true);
+        // unwrap ayu-img-wrap and remove handles
+        clone.querySelectorAll('.ayu-img-wrap').forEach(wrap => {
+          const img = wrap.querySelector('img');
+          if (img) {
+            wrap.replaceWith(img);
+          } else {
+            wrap.remove();
+          }
+        });
+        clone.querySelectorAll('.ayu-img-handle').forEach(h => h.remove());
+        return clone.innerHTML.trim();
+      }
+
+      // ---- Copy & Close modal ----
+      $('#ayu-copy').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(codeArea.value);
+          toast('Copied HTML to clipboard');
+        } catch {
+          toast('Copy failed—select and copy manually');
+        }
+      });
+      $('#ayu-close').addEventListener('click', () => modal.classList.remove('active'));
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('active');
+      });
+
+      // ---- Print ----
+      $('#ayu-print').addEventListener('click', () => {
+        // Ensure focus leaves contenteditable to commit any pending changes
+        page.focus();
+        window.print();
+      });
+
+      // ---- Tiny toast ----
+      function toast(msg) {
+        const t = document.createElement('div');
+        t.textContent = msg;
+        t.style.position = 'fixed';
+        t.style.bottom = '16px';
+        t.style.left = '50%';
+        t.style.transform = 'translateX(-50%)';
+        t.style.background = '#1b2130';
+        t.style.color = '#e6e9ef';
+        t.style.border = '1px solid #2a3242';
+        t.style.padding = '8px 12px';
+        t.style.borderRadius = '8px';
+        t.style.boxShadow = '0 10px 30px rgba(0,0,0,0.35)';
+        t.style.zIndex = '200';
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 1800);
+      }
+
+      // ---- Keyboard shortcuts (common ones) ----
+      editor.addEventListener('keydown', (e) => {
+        if (e.metaKey || e.ctrlKey) {
+          if (e.key.toLowerCase() === 'b') { document.execCommand('bold'); e.preventDefault(); }
+          if (e.key.toLowerCase() === 'i') { document.execCommand('italic'); e.preventDefault(); }
+          if (e.key.toLowerCase() === 'u') { document.execCommand('underline'); e.preventDefault(); }
+        }
+      });
+
+      // ---- Starter selection: place caret at end ----
+      placeCaretAtEnd(editor);
+      function placeCaretAtEnd(el) {
+        el.focus();
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    })();
+  </script>
+</body>
+</html>
