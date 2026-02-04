@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Folder URL Dictionary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --accent:#38bdf8;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --url:#fb7185;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  background:#020617;
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.app{width:100%;max-width:1100px;padding:30px}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:30px;
+  box-shadow:0 30px 60px rgba(0,0,0,.6);
+}
+
+h1{margin:0 0 20px}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+  margin:16px 0 8px;
+  display:block;
+}
+
+.row{display:flex;gap:12px}
+
+input,select{
+  flex:1;
+  padding:14px 16px;
+  border-radius:12px;
+  border:none;
+  outline:none;
+  background:#020617;
+  color:var(--text);
+}
+
+button{
+  padding:14px 18px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  color:#020617;
+  font-weight:500;
+}
+
+.json-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.add-btn{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  color:#020617;
+  font-size:22px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(56,189,248,.4);
+}
+
+pre{
+  height:340px;
+  background:#020617;
+  border-radius:14px;
+  padding:16px;
+  overflow:auto;
+  font-size:13px;
+  line-height:1.6;
+  outline:none;
+}
+
+.url{color:var(--url)}
+
+.footer{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+  text-align:right;
+}
+
+/* Modal */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(2,6,23,.6);
+  backdrop-filter:blur(6px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+}
+
+.modal.active{display:flex}
+
+.modal-box{
+  background:#020617;
+  border-radius:18px;
+  padding:24px;
+  width:360px;
+  text-align:center;
+  box-shadow:0 30px 60px rgba(0,0,0,.6);
+  animation:pop .2s ease;
+}
+
+@keyframes pop{
+  from{transform:scale(.95);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+.drop-zone{
+  border:2px dashed #334155;
+  border-radius:14px;
+  padding:30px;
+  color:var(--muted);
+  cursor:pointer;
+  transition:.2s;
+}
+
+.drop-zone.drag{
+  border-color:var(--accent);
+  color:var(--accent);
+}
+
+.close{
+  margin-top:14px;
+  font-size:13px;
+  color:var(--muted);
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+<div class="card">
+
+<h1>📁 Folder URL Dictionary</h1>
+
+<label>Create Folder</label>
+<div class="row">
+  <input id="folderName" placeholder="Folder name">
+  <select id="parentFolder"></select>
+  <button onclick="createFolder()">Create</button>
+</div>
+
+<label>Add URL (Enter or Add)</label>
+
+<!-- ✅ FORM FIX -->
+<form class="row" id="urlForm">
+  <input id="urlInput" placeholder="https://example.com">
+  <select id="targetFolder"></select>
+  <button type="submit">Add</button>
+</form>
+
+<div class="json-header">
+  <label>Saved JSON (editable)</label>
+  <div class="add-btn" onclick="openModal()">+</div>
+</div>
+
+<pre id="jsonView" contenteditable="true"></pre>
+
+<div class="row">
+  <button onclick="applyJSON()">💾 Save Changes</button>
+  <button onclick="downloadJSON()">⬇ Download JSON</button>
+</div>
+
+<div class="footer">Smooth • Reliable • Persistent</div>
+
+</div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h3>Upload JSON</h3>
+    <div class="drop-zone" id="dropZone">
+      Click or drag JSON file here
+      <input type="file" hidden accept=".json" id="fileInput">
+    </div>
+    <div class="close" onclick="closeModal()">Cancel</div>
+  </div>
+</div>
+
+<script>
+const KEY="url_dictionary";
+let data={};
+
+// load
+const saved=localStorage.getItem(KEY);
+if(saved) data=JSON.parse(saved);
+updateUI();
+
+/* ✅ FORM SUBMIT HANDLER */
+document.getElementById("urlForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  addURL();
+});
+
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(data));
+  updateUI();
+}
+
+function updateUI(){
+  renderJSON();
+  updateFolderSelects();
+}
+
+/* Modal logic */
+const modal=document.getElementById("modal");
+const dropZone=document.getElementById("dropZone");
+const fileInput=document.getElementById("fileInput");
+
+function openModal(){modal.classList.add("active")}
+function closeModal(){modal.classList.remove("active")}
+
+dropZone.onclick=()=>fileInput.click();
+fileInput.onchange=e=>loadFile(e.target.files[0]);
+
+dropZone.ondragover=e=>{e.preventDefault();dropZone.classList.add("drag")};
+dropZone.ondragleave=()=>dropZone.classList.remove("drag");
+dropZone.ondrop=e=>{
+  e.preventDefault();
+  dropZone.classList.remove("drag");
+  loadFile(e.dataTransfer.files[0]);
+};
+
+function loadFile(file){
+  if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{data=JSON.parse(e.target.result);save();closeModal()}
+    catch{alert("Invalid JSON")}
+  };
+  r.readAsText(file);
+}
+
+/* Core logic */
+function createFolder(){
+  const n=folderName.value.trim();
+  if(!n) return;
+  const p=parentFolder.value;
+  const r=p?getRef(p):data;
+  if(r[n]) return alert("Folder exists");
+  r[n]={};
+  folderName.value="";
+  save();
+}
+
+function addURL(){
+  const u=urlInput.value.trim();
+  if(!u) return;
+  if(urlExists(data,u)) return alert("URL already exists");
+
+  const f=targetFolder.value;
+  const r=f?getRef(f):data;
+  r[getNextKey(r)]=u;
+
+  urlInput.value="";
+  save();
+}
+
+function getNextKey(o){
+  let m=0;
+  for(const k in o) if(k.startsWith("url_")) m=Math.max(m,+k.split("_")[1]);
+  return "url_"+(m+1);
+}
+
+function getRef(p){return p.split("/").reduce((o,k)=>o[k],data)}
+
+function getFolders(o,p=""){
+  let r=[];
+  for(const k in o)
+    if(typeof o[k]==="object"){
+      const n=p?p+"/"+k:k;
+      r.push(n);r=r.concat(getFolders(o[k],n));
+    }
+  return r;
+}
+
+function updateFolderSelects(){
+  const f=getFolders(data);
+  parentFolder.innerHTML=`<option value="">Root</option>`;
+  targetFolder.innerHTML=`<option value="">Root</option>`;
+  f.forEach(x=>{
+    parentFolder.innerHTML+=`<option value="${x}">${x}</option>`;
+    targetFolder.innerHTML+=`<option value="${x}">${x}</option>`;
+  });
+}
+
+function urlExists(o,u){
+  for(const k in o){
+    if(o[k]===u) return true;
+    if(typeof o[k]==="object" && urlExists(o[k],u)) return true;
+  }
+  return false;
+}
+
+function renderJSON(){
+  jsonView.innerHTML=JSON.stringify(data,null,2)
+    .replace(/("url_\d+":\s*)"([^"]+)"/g,
+      `$1"<span class="url">$2</span>"`);
+}
+
+function applyJSON(){
+  try{data=JSON.parse(jsonView.innerText);save()}
+  catch{alert("Invalid JSON")}
+}
+
+function downloadJSON(){
+  const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b);
+  a.download="bookmarks.json";
+  a.click();
+}
+</script>
+
+</body>
+</html>
