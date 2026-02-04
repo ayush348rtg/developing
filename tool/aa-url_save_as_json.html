@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Premium Folder Bookmark</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --accent:#38bdf8;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --url:#f87171;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  background:linear-gradient(135deg,#020617,#020617);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.app{
+  width:100%;
+  max-width:1000px;
+  padding:30px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:30px;
+  box-shadow:0 30px 60px rgba(0,0,0,.6);
+}
+
+h1{
+  margin:0 0 20px;
+  font-size:24px;
+}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+  display:block;
+  margin:16px 0 8px;
+}
+
+.row{
+  display:flex;
+  gap:12px;
+}
+
+input, select{
+  flex:1;
+  padding:14px 16px;
+  border-radius:12px;
+  border:none;
+  outline:none;
+  background:#020617;
+  color:var(--text);
+  font-size:14px;
+}
+
+button{
+  padding:14px 18px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  color:#020617;
+  font-weight:500;
+}
+
+pre{
+  width:100%;
+  height:320px;
+  background:#020617;
+  border-radius:14px;
+  padding:16px;
+  overflow:auto;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.url{
+  color:var(--url);
+}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:8px;
+  text-align:right;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="card">
+    <h1>📁 Premium Folder Bookmark</h1>
+
+    <label>Create Folder (nested)</label>
+    <div class="row">
+      <input id="folderName" placeholder="Folder name">
+      <select id="parentFolder"></select>
+      <button onclick="createFolder()">Create</button>
+    </div>
+
+    <label>Add URL (press Enter)</label>
+    <div class="row">
+      <input id="urlInput" placeholder="https://example.com">
+      <select id="targetFolder"></select>
+      <button onclick="addURL()">Add</button>
+    </div>
+
+    <label>Saved JSON</label>
+    <pre id="jsonView"></pre>
+
+    <div class="small">Saved locally in browser</div>
+  </div>
+</div>
+
+<script>
+const KEY = "folder_bookmarks";
+let data = {};
+let urlCounter = 1;
+
+// Load saved data
+const saved = localStorage.getItem(KEY);
+if(saved){
+  data = JSON.parse(saved);
+  urlCounter = findMaxUrl(data) + 1;
+}
+
+updateUI();
+
+// ENTER key to add URL
+urlInput.addEventListener("keydown", e => {
+  if(e.key === "Enter"){
+    e.preventDefault();
+    addURL();
+  }
+});
+
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(data));
+  updateUI();
+}
+
+function updateUI(){
+  renderJSON();
+  updateFolderSelects();
+}
+
+function updateFolderSelects(){
+  const all = getFolders(data);
+  const currentParent = parentFolder.value;
+  const currentTarget = targetFolder.value;
+
+  parentFolder.innerHTML = `<option value="">Root</option>`;
+  targetFolder.innerHTML = `<option value="">Root</option>`;
+
+  all.forEach(f=>{
+    parentFolder.innerHTML += `<option value="${f.path}">${f.path}</option>`;
+    targetFolder.innerHTML += `<option value="${f.path}">${f.path}</option>`;
+  });
+
+  parentFolder.value = currentParent;
+  targetFolder.value = currentTarget;
+}
+
+// Folder creation
+function createFolder(){
+  const name = folderName.value.trim();
+  if(!name) return;
+
+  const parent = parentFolder.value;
+  const target = parent ? getRef(parent) : data;
+
+  if(target[name]){
+    alert("Folder already exists");
+    return;
+  }
+
+  target[name] = {};
+  folderName.value = "";
+  save();
+}
+
+// Add URL
+function addURL(){
+  const url = urlInput.value.trim();
+  if(!url) return;
+
+  if(urlExists(data, url)){
+    alert("URL already exists in JSON");
+    return;
+  }
+
+  const folder = targetFolder.value;
+  const target = folder ? getRef(folder) : data;
+
+  target[`url_${urlCounter++}`] = url;
+  urlInput.value = "";
+  save();
+}
+
+// Helpers
+function getRef(path){
+  return path.split("/").reduce((o,k)=>o[k], data);
+}
+
+function getFolders(obj, path=""){
+  let res=[];
+  for(const k in obj){
+    if(typeof obj[k] === "object"){
+      const p = path ? path+"/"+k : k;
+      res.push({path:p});
+      res = res.concat(getFolders(obj[k], p));
+    }
+  }
+  return res;
+}
+
+function findMaxUrl(obj){
+  let max=0;
+  for(const k in obj){
+    if(k.startsWith("url_")){
+      max = Math.max(max, +k.split("_")[1]);
+    }
+    if(typeof obj[k] === "object"){
+      max = Math.max(max, findMaxUrl(obj[k]));
+    }
+  }
+  return max;
+}
+
+function urlExists(obj, url){
+  for(const k in obj){
+    if(obj[k] === url) return true;
+    if(typeof obj[k] === "object" && urlExists(obj[k], url)) return true;
+  }
+  return false;
+}
+
+// JSON renderer with red URLs
+function renderJSON(){
+  const json = JSON.stringify(data, null, 2)
+    .replace(/"url_\d+":\s*"([^"]+)"/g,
+      `"url_$&`.replace(/"url_\d+":\s*"([^"]+)"/g,
+      `"url_$1"`));
+
+  const highlighted = JSON.stringify(data, null, 2)
+    .replace(/("url_\d+":\s*)"([^"]+)"/g,
+      `$1"<span class="url">$2</span>"`);
+
+  jsonView.innerHTML = highlighted;
+}
+</script>
+
+</body>
+</html>
