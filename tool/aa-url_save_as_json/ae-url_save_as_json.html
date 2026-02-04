@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bookmark Dictionary Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --panel:#020617;
+  --accent:#38bdf8;
+  --accent2:#0ea5e9;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --danger:#ef4444;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  background:radial-gradient(circle at top,#020617,#000);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.app{width:100%;max-width:1050px;padding:30px}
+.card{
+  background:var(--card);
+  border-radius:22px;
+  padding:28px;
+  box-shadow:0 40px 90px rgba(0,0,0,.7);
+}
+h1{
+  margin:0 0 20px;
+  font-size:22px;
+  font-weight:600;
+}
+label{
+  font-size:12px;
+  color:var(--muted);
+  display:block;
+  margin-bottom:6px;
+}
+.row{
+  display:flex;
+  gap:12px;
+  margin-bottom:16px;
+}
+input,select{
+  background:var(--panel);
+  border:none;
+  border-radius:14px;
+  padding:14px 16px;
+  color:var(--text);
+  font-size:14px;
+  outline:none;
+  height:46px;
+}
+input{flex:1}
+button{
+  height:46px;
+  border:none;
+  border-radius:14px;
+  padding:0 22px;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#020617;
+  font-weight:600;
+  font-size:14px;
+  transition:.15s ease;
+}
+button:hover{opacity:.9;transform:translateY(-1px)}
+button:active{transform:none}
+
+.secondary{
+  background:#020617;
+  color:var(--text);
+  border:1px solid #1e293b;
+}
+
+.toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:18px 0 10px;
+}
+.toolbar-actions{
+  display:flex;
+  gap:10px;
+}
+.icon-btn{
+  width:42px;height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--panel);
+  border-radius:14px;
+  cursor:pointer;
+  font-size:18px;
+  transition:.15s ease;
+}
+.icon-btn:hover{
+  background:#020617;
+  transform:translateY(-1px);
+}
+
+pre{
+  background:var(--panel);
+  border-radius:18px;
+  padding:20px;
+  max-height:340px;
+  overflow:auto;
+  font-family:monospace;
+  font-size:14px;
+}
+
+.key{color:#7dd3fc}
+.string{color:#a7f3d0}
+.dup{color:var(--danger);font-weight:600}
+
+/* ---------- MODAL ---------- */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(2,6,23,.75);
+  backdrop-filter:blur(6px);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+.modal.active{display:flex}
+.modal-box{
+  background:var(--card);
+  border-radius:22px;
+  padding:28px;
+  width:420px;
+  box-shadow:0 40px 80px rgba(0,0,0,.7);
+}
+.modal-box h3{
+  margin:0 0 16px;
+  font-size:18px;
+}
+.file-input{
+  display:block;
+  width:100%;
+  margin-bottom:14px;
+}
+.drop{
+  border:2px dashed var(--accent);
+  border-radius:18px;
+  padding:36px;
+  text-align:center;
+  color:var(--muted);
+  transition:.2s ease;
+}
+.drop:hover{
+  background:#020617;
+  border-color:var(--accent2);
+}
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:20px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+<div class="card">
+
+<h1>🔖 Bookmark Dictionary Pro</h1>
+
+<label>URL</label>
+<div class="row">
+  <input id="urlInput" placeholder="https://example.com">
+  <button onclick="saveURL()">Save</button>
+</div>
+
+<label>Folder Path</label>
+<div class="row">
+  <select id="folderSelect"></select>
+  <input id="newFolder" placeholder="Sub-folder name">
+  <button class="secondary" onclick="addFolder()">Add</button>
+</div>
+
+<div class="toolbar">
+  <label>JSON Preview</label>
+  <div class="toolbar-actions">
+    <div class="icon-btn" title="Upload JSON" onclick="openUpload()">＋</div>
+    <div class="icon-btn" title="Download JSON" onclick="downloadJSON()">⬇</div>
+  </div>
+</div>
+
+<pre id="jsonView"></pre>
+
+</div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal" id="uploadModal">
+  <div class="modal-box">
+    <h3>Upload JSON</h3>
+    <input class="file-input" type="file" accept=".json" onchange="uploadFile(this.files[0])">
+    <div class="drop"
+      ondragover="event.preventDefault()"
+      ondrop="dropFile(event)">
+      Drag & drop JSON file here
+    </div>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeUpload()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE="bookmark_dict";
+let data={},currentPath=[];
+
+load();renderFolders();renderJSON();
+
+urlInput.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault();saveURL();}
+});
+
+function getNode(path){return path.reduce((o,k)=>o[k],data);}
+function collectURLs(obj,map={}){for(const k in obj){typeof obj[k]==="string"?map[obj[k]]=(map[obj[k]]||0)+1:collectURLs(obj[k],map)}return map}
+
+function saveURL(){
+  const url=urlInput.value.trim();
+  if(!url)return;
+  if(collectURLs(data)[url]){alert("Duplicate URL!");return;}
+  const node=getNode(currentPath);
+  node["url_"+(Object.keys(node).length+1)]=url;
+  save();renderJSON();urlInput.value="";
+}
+
+function addFolder(){
+  const name=newFolder.value.trim();
+  if(!name)return;
+  const node=getNode(currentPath);
+  if(node[name])return;
+  node[name]={};
+  save();renderFolders();renderJSON();newFolder.value="";
+}
+
+function renderFolders(){
+  folderSelect.innerHTML="";
+  (function walk(obj,path,label){
+    folderSelect.add(new Option(label||"root",JSON.stringify(path)));
+    for(const k in obj) if(typeof obj[k]==="object") walk(obj[k],[...path,k],label?label+"/"+k:k);
+  })(data,[],null);
+  folderSelect.onchange=()=>currentPath=JSON.parse(folderSelect.value);
+}
+
+function renderJSON(){
+  const counts=collectURLs(data);
+  jsonView.innerHTML=formatJSON(data,counts,0);
+}
+
+function formatJSON(obj,counts,i){
+  let h="{<br>",p="&nbsp;".repeat(i*4);
+  for(const k in obj){
+    h+=p+`&nbsp;&nbsp;<span class="key">"${k}"</span>: `;
+    if(typeof obj[k]==="string"){
+      h+=`<span class="${counts[obj[k]]>1?"dup":"string"}">"${obj[k]}"</span>,<br>`;
+    }else h+=formatJSON(obj[k],counts,i+1)+",<br>";
+  }
+  return h.replace(/,<br>$/,"<br>")+p+"}";
+}
+
+function save(){localStorage.setItem(STORAGE,JSON.stringify(data))}
+function load(){const d=localStorage.getItem(STORAGE);if(d)data=JSON.parse(d)}
+
+function downloadJSON(){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
+  a.download="bookmarks.json";a.click();
+}
+
+function openUpload(){uploadModal.classList.add("active")}
+function closeUpload(){uploadModal.classList.remove("active")}
+function uploadFile(f){
+  const r=new FileReader();
+  r.onload=()=>{data=JSON.parse(r.result);save();renderFolders();renderJSON();closeUpload()};
+  r.readAsText(f);
+}
+function dropFile(e){e.preventDefault();uploadFile(e.dataTransfer.files[0])}
+</script>
+
+</body>
+</html>
