@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Folder URL Dictionary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --accent:#38bdf8;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --url:#fb7185;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  background:#020617;
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.app{width:100%;max-width:1100px;padding:30px}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:30px;
+  box-shadow:0 30px 60px rgba(0,0,0,.6);
+}
+
+h1{margin:0 0 20px}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+  margin:16px 0 8px;
+  display:block;
+}
+
+.row{display:flex;gap:12px;flex-wrap:wrap}
+
+input,select{
+  flex:1;
+  padding:14px 16px;
+  border-radius:12px;
+  border:none;
+  outline:none;
+  background:#020617;
+  color:var(--text);
+}
+
+button{
+  padding:14px 18px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  color:#020617;
+  font-weight:500;
+}
+
+pre{
+  height:340px;
+  background:#020617;
+  border-radius:14px;
+  padding:16px;
+  overflow:auto;
+  font-size:13px;
+  line-height:1.6;
+  outline:none;
+}
+
+.url{color:var(--url)}
+
+.footer{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+  text-align:right;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+<div class="card">
+
+<h1>📁 Folder URL Dictionary</h1>
+
+<label>Create Folder</label>
+<div class="row">
+  <input id="folderName" placeholder="Folder name">
+  <select id="parentFolder"></select>
+  <button onclick="createFolder()">Create</button>
+</div>
+
+<label>Add URL (press Enter)</label>
+<div class="row">
+  <input id="urlInput" placeholder="https://example.com">
+  <select id="targetFolder"></select>
+  <button onclick="addURL()">Add</button>
+</div>
+
+<label>Saved JSON (editable)</label>
+<pre id="jsonView" contenteditable="true"></pre>
+
+<div class="row">
+  <button onclick="applyJSON()">💾 Save Changes</button>
+  <button onclick="downloadJSON()">⬇ Download JSON</button>
+
+  <label style="cursor:pointer">
+    <input type="file" hidden accept=".json" onchange="importJSON(this)">
+    ⬆ Upload JSON
+  </label>
+</div>
+
+<div class="footer">Auto-saved in browser</div>
+
+</div>
+</div>
+
+<script>
+const KEY = "url_dictionary";
+let data = {};
+
+// load
+const saved = localStorage.getItem(KEY);
+if(saved) data = JSON.parse(saved);
+updateUI();
+
+// ENTER key fix
+urlInput.addEventListener("keydown", e=>{
+  if(e.key === "Enter"){
+    e.preventDefault();
+    addURL();
+  }
+});
+
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(data));
+  updateUI();
+}
+
+function updateUI(){
+  renderJSON();
+  updateFolderSelects();
+}
+
+// folder
+function createFolder(){
+  const name = folderName.value.trim();
+  if(!name) return;
+
+  const parent = parentFolder.value;
+  const ref = parent ? getRef(parent) : data;
+
+  if(ref[name]){
+    alert("Folder already exists");
+    return;
+  }
+
+  ref[name] = {};
+  folderName.value="";
+  save();
+}
+
+// add url
+function addURL(){
+  const url = urlInput.value.trim();
+  if(!url) return;
+
+  if(urlExists(data,url)){
+    alert("URL already exists");
+    return;
+  }
+
+  const folder = targetFolder.value;
+  const ref = folder ? getRef(folder) : data;
+
+  const key = getNextUrlKey(ref);
+  ref[key] = url;
+
+  urlInput.value="";
+  save();
+}
+
+// helpers
+function getNextUrlKey(obj){
+  let max=0;
+  for(const k in obj){
+    if(k.startsWith("url_")){
+      max=Math.max(max,+k.split("_")[1]);
+    }
+  }
+  return "url_"+(max+1);
+}
+
+function getRef(path){
+  return path.split("/").reduce((o,k)=>o[k],data);
+}
+
+function getFolders(obj,path=""){
+  let res=[];
+  for(const k in obj){
+    if(typeof obj[k]==="object"){
+      const p=path?path+"/"+k:k;
+      res.push(p);
+      res=res.concat(getFolders(obj[k],p));
+    }
+  }
+  return res;
+}
+
+function updateFolderSelects(){
+  const folders=getFolders(data);
+  const p=parentFolder.value;
+  const t=targetFolder.value;
+
+  parentFolder.innerHTML=`<option value="">Root</option>`;
+  targetFolder.innerHTML=`<option value="">Root</option>`;
+
+  folders.forEach(f=>{
+    parentFolder.innerHTML+=`<option value="${f}">${f}</option>`;
+    targetFolder.innerHTML+=`<option value="${f}">${f}</option>`;
+  });
+
+  parentFolder.value=p;
+  targetFolder.value=t;
+}
+
+function urlExists(obj,url){
+  for(const k in obj){
+    if(obj[k] === url) return true;
+    if(typeof obj[k]==="object" && urlExists(obj[k],url)) return true;
+  }
+  return false;
+}
+
+// JSON render
+function renderJSON(){
+  const raw = JSON.stringify(data,null,2);
+  jsonView.innerHTML = raw.replace(
+    /("url_\d+":\s*)"([^"]+)"/g,
+    `$1"<span class='url'>$2</span>"`
+  );
+}
+
+// apply edited JSON
+function applyJSON(){
+  try{
+    const text = jsonView.innerText;
+    data = JSON.parse(text);
+    save();
+  }catch{
+    alert("Invalid JSON");
+  }
+}
+
+// download
+function downloadJSON(){
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "bookmarks.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// import
+function importJSON(input){
+  const file = input.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      data = JSON.parse(e.target.result);
+      save();
+    }catch{
+      alert("Invalid JSON file");
+    }
+  };
+  reader.readAsText(file);
+}
+</script>
+
+</body>
+</html>
